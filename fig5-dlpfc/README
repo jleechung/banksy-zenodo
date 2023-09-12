@@ -1,0 +1,9 @@
+
+Scripts to run BANKSY on the DLPFC dataset from: 
+
+Maynard, K. R. et al. Transcriptome-scale spatial gene expression in the human dorsolateral prefrontal cortex. 
+Nature Neuroscience 24, 425–436. https://doi.org/10.1038/s41593-020-00787-0 (Feb. 2021).
+
+BANKSY was run with 11 different seeds, and the median ARI across was computed across the samples for each seed, resulting in one ARI value per seed.
+Seed 41 gave the median ARI value across seeds. 
+

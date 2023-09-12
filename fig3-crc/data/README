@@ -1,0 +1,22 @@
+
+Vizgen MERSCOPE data (`Colon cancer 1`) download links:
+
+https://info.vizgen.com/ffpe-showcase?submissionGuid=df8c4d64-71d8-4632-b671-996d05f202f5
+https://console.cloud.google.com/storage/browser/vz-ffpe-showcase;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
+
+Files accessed:
+
+- `cell_by_gene.csv`
+- `cell_metadata.csv`
+
+Reference data from:
+
+Pelka K, Hofree M, Chen JH, Sarkizova S et al. Spatially organized multicellular immune hubs in human colorectal cancer. 
+Cell 2021 Sep 2;184(18):4734-4752.e20. PMID: 34450029
+
+Reference data doanlod links:
+
+https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178341/suppl/GSE178341_crc10x_full_c295v4_submit.h5
+https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178341/suppl/GSE178341_crc10x_full_c295v4_submit_cluster.csv.gz
+https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178341/suppl/GSE178341_crc10x_full_c295v4_submit_metatables.csv.gz
+
