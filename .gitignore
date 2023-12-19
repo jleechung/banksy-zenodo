@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 .Rproj
+tmp
+.DS_Store
+.rds

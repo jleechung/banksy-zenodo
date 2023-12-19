@@ -1,0 +1,4 @@
+*.rds
+*.pdf
+*.png
+.DS_Store
