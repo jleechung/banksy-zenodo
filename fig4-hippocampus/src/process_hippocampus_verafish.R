@@ -1,5 +1,7 @@
 # process_hippocampus_verafish.R
-
+# You need the (legacy) version of BANKSY (v 0.1.5) for recreating this analysis: 
+# remotes::install_github("prabhakarlab/Banksy@main") # to install 0.1.5. 
+# See also the instructions in lines 133-151 below. 
 # The data for this analysis is provided with the package. You can load it as follows:
 library(Banksy)
 library(ggplot2)
@@ -8,7 +10,6 @@ library(scales)
 library(ComplexHeatmap)
 library(data.table)
 library(irlba)
-# library(MERINGUE)
 
 library(Matrix)
 
@@ -128,15 +129,31 @@ total_count <- colSums(expr)
 num_genes <- colSums(expr > 0)
 meta <- data.frame(total_count = total_count, num_genes = num_genes)
 
-# You may load banksy object from our run. You can also uncomment the code below and generate your own. 
-# This assumes you have downloaded 'bank.rds' into the fig4-hippocampus/data directory. 
-# See the README file in fig4-hippocampus/data. 
+# You may load banksy object from our run, or uncomment the code below 
+# (start and end Banksy clustering) and generate your own. To download our BANKSY object, 
+# go, use the following link and place it in the 'fig4-hippocampus/data' directory. 
+# https://www.dropbox.com/scl/fi/7wwb3oge18f4dsd09t269/bank.rds?rlkey=kln41aetg3louna430r7l50ue&dl=0
+# (If you downloaded the code from Zenodo, then the banksy object is already in the directory; 
+# you only need download it if you are using the code from the GitHub repo.)
 bank = readRDS(file = paste0(data.dir, '/bank.rds'))
+
+# If you do run the code yourself, see the notes below in lines 432-438 and on lines 
+# 500-508 on correctly identifying the correct pairs of clusters to generate DE genes.
+# In brief, you must identify which clusters correspond to the fornix vs thalamic oligos, 
+# and the CA3 vs SSC neurons. For the oligos, you can do so by looking at the heatmap 
+# generated below, and looking for marker genes which we specify below (since 
+# the markers mark both clusters of interest). For the neurons, the markes mark both 
+# the neuronal clusters of interest, and other neuronal clusters too (with subtle 
+# differences in expression across different neuronal clusters). Thus, we take the alternate 
+# approach of plotting the spatial distributions of the clusters, and look at the 
+# paper to see what the distribution of the  pair of clusters 
+# looks like to identify their cluster ID numbers. 
+# ---------------- start banksy clustering -----------------
 # bank <- BanksyObject(own.expr = expr, cell.locs = locs, meta.data = meta)
 # bank <- SubsetBanksy(bank, metadata = total_count > quantile(total_count, 0.05) &
-#                        total_count < quantile(total_count, 0.98)) 
+#                        total_count < quantile(total_count, 0.98))
 # bank <- NormalizeBanksy(bank)
-# bank <- ComputeBanksy(bank, k_geom = k_geom, M = m.val) 
+# bank <- ComputeBanksy(bank, k_geom = k_geom, M = m.val)
 # bank <- ScaleBanksy(bank)
 # lam <- c(0, lambda)
 # bank <- Banksy:::RunBanksyPCA(bank, lambda = lam, npcs = npcs, M = m.val)
@@ -144,9 +161,14 @@ bank = readRDS(file = paste0(data.dir, '/bank.rds'))
 # set.seed(42)
 # bank <- ClusterBanksy(bank, lambda = lam, pca = TRUE, npcs = npcs, M = m.val,
 #                       method = 'leiden', k.neighbors = k_expr, resolution = res)
-# 
+# ---------------- end banksy clustering -----------------
 
-# You can uncomment the lines below and run MERINGUE. Or you can use the 
+
+
+
+
+# You can uncomment the lines below and run MERINGUE. Or you can use the provided results (lines 226-233)
+# library(MERINGUE)
 # filterDists<-c(750)
 # w2 <- getSpatialNeighbors(bank@cell.locs, filterDist = filterDists[1], verbose=TRUE)
 # 
@@ -382,11 +404,6 @@ p.all.mk<-Banksy::plotHeatmap(bank,
 print(p.all.mk)
 dev.off()
 
-
-# saveRDS(rownames(bank@own.expr), file = paste0(results.dir, '/gene_names_in_order.rds'))
-# gene_names_in_order = readRDS(file = paste0(results.dir, '/gene_names_in_order.rds'))
-
-
 # de gene analysis
 mk_banksy_w_pair <- scran::pairwiseWilcox(bank@own.expr, 
                                           groups = bank@meta.data$clust_M1_lam0.2_k50_res1.5)
@@ -412,16 +429,24 @@ topmk_w_combined_all<-scran::getTopMarkers(mk_banksy_w_pair$statistics,
 
 saveRDS(topmk_w_combined_all, file = paste0(results.dir, '/topmk_w_combined_all.rds'))
 
-cl1 = as.character(7)
-cl2 = as.character(10)
-# cl3 = as.character(13)
-set2w1 = topmk_w[[cl1]][[cl2]]
+# If you did not use our banksy object and clustering result, and instead ran the code in lines 140-153
+# yourself, you might need to manually identify which two clusters numbers correspond to the 
+# two oligodendrocyte clusters, and then populate lines 440-441 below with those two numbers 
+# (in the provided banksy clustering, these are clusters 7 and 10). The best way to do this 
+# is by looking at the heatmap just generated, which can be found in fig4-hippocampus/out/verafish/hm_all_main_methods.pdf
+# The second annotation row in this heatmap corresponds to the BANKSY clustering (lam0.2). The 
+# pair of clusters you are looking for are marked by high expression of Mbp, Enpp2, Plp1 and Sgk1.
 
-set2t1 = topmk_t[[cl1]][[cl2]]
+cl1.oligo = as.character(7)
+cl2.oligo = as.character(10)
+
+set2w1 = topmk_w[[cl1.oligo]][[cl2.oligo]]
+
+set2t1 = topmk_t[[cl1.oligo]][[cl2.oligo]]
 
 fimbria_de <- unique(c(set2w1, set2t1)) 
 
-bank.cells<-bank@meta.data$cell_ID[ bank@meta.data[[banksy.annot]] %in% c(7,10)] 
+bank.cells<-bank@meta.data$cell_ID[ bank@meta.data[[banksy.annot]] %in% c(cl1.oligo, cl2.oligo)] 
 bank.subset<-SubsetBanksy(bank, cells = bank.cells, features = fimbria_de)
 
 gene_names = rownames(bank.subset@own.expr)
@@ -441,7 +466,6 @@ genes_ord = c('Mobp',
               'Map',
               'Clstn2')
 union(setdiff(fimbria_de, genes_ord) , setdiff(genes_ord, fimbria_de))
-# character(0)
 
 saveRDS(genes_ord, file = paste0(results.dir, '/fimbria_de_Oct25.rds'))
 
@@ -450,11 +474,10 @@ bank.subset@own.expr <- bank.subset@own.expr[order(match(rownames(bank.subset@ow
 bank.subset@nbr.expr <- bank.subset@nbr.expr[order(match(rownames(bank.subset@own.expr),genes_ord)),] 
 bank.subset@harmonics$k1 <- bank.subset@harmonics$k1[order(match(rownames(bank.subset@own.expr),genes_ord)),]  
 
-
-
-
 bank.subset <- ScaleBanksy(bank.subset)
-png(paste0(results.dir, '/','hm_', 'fimbria_scaled' , '.png'), height = 5, width = 12, res = 200, units = 'in')
+png(paste0(results.dir, '/','hm_', 'fimbria_scaled' , '.png'), 
+    height = 5, width = 12, res = 200,
+    units = 'in')
 plotHeatmap(bank.subset, 
             # cells = cells,
             # features = fimbria_de, 
@@ -474,33 +497,32 @@ plotHeatmap(bank.subset,
             cluster_columns = TRUE)
 dev.off()
 
-cl1 = as.character(14)
-cl2 = as.character(18)
+# If you ran the banksy clustering yourself (instead of using our provided banksy object),
+# you will need to identify the cluster number IDs corresponding to the CA3 and somatosensory
+# cortex neurons and populate lines 511-512. In the oligodendrocytes case above, we were able to do this using 
+# marker genes. But here, there are several neuronal clusters, with only subtle differences 
+# in marker gene expression (the markers being Rtn1, Tbr1, Parp1, Clstn2, Cadm3, Cacna1a, among many others),
+# so to identify the two neuronal clusters of interest, we must follow look at the spatial distributions
+# of the clusters. Open the file out/spatial_tall_smaller_clust_M1_lam0.2_k50_res1.5.png generated above. 
+# Here, you will find the clusters corresponding to the CA3 neurons and the SSC neurons (see main Fig 4 for 
+# the shape / location of these clusters.). In our banksy object, their numerical IDs are 14, 18. 
 
-set3w1 = topmk_w[[cl1]][[cl2]]
-set3t1 = topmk_t[[cl1]][[cl2]]
+# For identifying the cluster number of the two neuronal clusters 
+cl1.neuron = as.character(14)
+cl2.neuron = as.character(18)
 
+set3w1 = topmk_w[[cl1.neuron]][[cl2.neuron]]
+set3t1 = topmk_t[[cl1.neuron]][[cl2.neuron]]
 
-# summary_df = as.data.frame(list(cl_7_8_w = set2w1, cl_7_8_t = set2t1, 
-#                     cl_7_13_w = set2w2, cl_7_13_t = set2t2, 
-#                     cl_8_13_w = set2w3, cl_8_13_t = set2t3, 
-#                     cl_12_17_w = set3w1, cl_12_17_t = set3t1, 
-#                     cl_12_5_w = set3w2, cl_12_5_t = set3t2, 
-#                     cl_12_6_w = set3w3, cl_12_6_t = set3t3, 
-#                     cl_17_5_w = set3w4, cl_17_5_t = set3t4, 
-#                     cl_17_6_w = set3w5, cl_17_6_t = set3t5, 
-#                     cl_5_6_w = set3w6, cl_5_6_t = set3t6))
-# saveRDS(summary_df, file = paste0(results.dir, '/DE_genes.rds'))
 
 ca3_de <- unique(c(set3w1, set3t1))
-bank.cells<-bank@meta.data$cell_ID[ bank@meta.data[[banksy.annot]] %in% c(14,18)]
+bank.cells<-bank@meta.data$cell_ID[ bank@meta.data[[banksy.annot]] %in% c(cl1.neuron,cl2.neuron)]
 bank.subset<-SubsetBanksy(bank, cells = bank.cells, features = ca3_de)
 genes_ord = c('Sparcl1' ,'Cd34' , 'Grm3'   ,'Egr1'  ,  'Tbr1' , 
               'Nefl',
               'Cacna1a', 'Cadm3' ,    'Clstn2', 
               'Gnaq'  )
-union(setdiff(ca3_de, genes_ord) , setdiff(genes_ord, ca3_de))
-# character(0)
+
 saveRDS(genes_ord, file = paste0(results.dir, '/CA3_de_Oct25.rds'))
 
 bank.subset@own.expr <- bank.subset@own.expr[order(match(rownames(bank.subset@own.expr),genes_ord)),]    
@@ -615,23 +637,6 @@ mk_comb<-function(x, N, topmk){
   return(topmk[[as.character(x[1])]][[as.character(x[2])]][1:N])
 }
 
-# banksy.pairz <- combn(cluster_ids$set1$banksy, m = 2)
-# paircomb <- split(banksy.pairz, rep(1:ncol(banksy.pairz), each = nrow(banksy.pairz)))
-# geneset1<-Reduce(union, lapply(paircomb, FUN = mk_comb, N = 8, topmk=topmk_w))
-# 
-# banksy.pairz <- combn(cluster_ids$set2$banksy, m = 2)
-# paircomb <- split(banksy.pairz, rep(1:ncol(banksy.pairz), each = nrow(banksy.pairz)))
-# geneset2<-Reduce(union, lapply(paircomb, FUN = mk_comb, N = 8, topmk=topmk_w))
-# 
-# banksy.pairz <- combn(cluster_ids$set3$banksy, m = 2)
-# paircomb <- split(banksy.pairz, rep(1:ncol(banksy.pairz), each = nrow(banksy.pairz)))
-# geneset3<-Reduce(union, lapply(paircomb, FUN = mk_comb, N = 8, topmk=topmk_w))
-# 
-# genesets <- Reduce(union, list(geneset1, geneset2, geneset3))
-# genesets <- union(all.mk, genes_spicemix)
-
-
-
 png(paste0(results.dir, '/all_mk_rescaled', '.png'), height = 35, 
     width = 21, res = 300, units = 'in')
 plotSpatialFeatures_(bank, by = all.mk, main = all.mk, main.size = 20,
@@ -644,10 +649,9 @@ dev.off()
 
 already.plotted.genes = c('Cadm3', 'Clstn2', 'Grm3', 'Egr1', 'Mobp', 'Bcas1', 'Sparcl1', 'Nefl')
 fimbria_to_plot <- fimbria_de[!(fimbria_de %in% already.plotted.genes)]
-###!HERE
 ca3_to_plot <- ca3_de[!(ca3_de %in% union(already.plotted.genes, fimbria_to_plot))]
 
-fimbria_and_ca3_clusters = c(7,10, 14, 18) # 7 = thalamic olig, 10 = fornix olig, 14 = CA3, 18 = pSSC
+fimbria_and_ca3_clusters = c(cl1.oligo, cl2.oligo, cl1.neuron, cl2.neuron) 
 
 already.plotted2 <- unique(c(already.plotted.genes, fimbria_to_plot, ca3_to_plot))
 all.mk3 <- Reduce(union, lapply(FUN = head, 
@@ -657,59 +661,8 @@ all.mk3 <- Reduce(union, lapply(FUN = head,
 
 
 mk.to.plot <- all.mk3[!(all.mk3 %in% already.plotted2)]
-# 
-# # remaining ca3
-# png(paste0(results.dir, '/ca3_mk_rescaled', '.png'), 
-#     height = ceiling(length(ca3_to_plot)/5)*3, 
-#     width = 20, res = 200, units = 'in')
-# plotSpatialFeatures_(bank, by = ca3_to_plot, main = ca3_to_plot, main.size = 20,
-#                         col.highpoint=apply(bank@own.expr[ca3_to_plot,], 
-#                                             1, quantile, probs = 0.995),
-#                         col.lowpoint=apply(bank@own.expr[ca3_to_plot,], 
-#                                            1, quantile, probs = 0),
-#                         col.midpoint=apply(bank@own.expr[ca3_to_plot,], 
-#                                            1, quantile, probs = 0.5),
-#                         type = rep('continuous', 
-#                                    length(ca3_to_plot)), 
-#                         nrow = ceiling(length(ca3_to_plot)/5), 
-#                         ncol = 5, pt.size = 0.1, legend.text.size = 10)
-# dev.off()
-# 
-# # remaining fimbria
-# png(paste0(results.dir, '/fimbria_mk_rescaled', '.png'), height = ceiling(length(fimbria_to_plot)/5)*3, 
-#     width = 20, res = 200, units = 'in')
-# plotSpatialFeatures_(bank, by = fimbria_to_plot, main = fimbria_to_plot, main.size = 20,
-#                         col.highpoint=apply(bank@own.expr[fimbria_to_plot,], 
-#                                             1, quantile, probs = 0.995),
-#                         col.lowpoint=apply(bank@own.expr[fimbria_to_plot,], 
-#                                            1, quantile, probs = 0),
-#                         col.midpoint=apply(bank@own.expr[fimbria_to_plot,], 
-#                                            1, quantile, probs = 0.5),
-#                         type = rep('continuous', 
-#                                    length(fimbria_to_plot)), 
-#                         nrow = ceiling(length(fimbria_to_plot)/5), 
-#                         ncol = 5, pt.size = 0.1, legend.text.size = 10)
-# dev.off()
 
-# 
-# #remaining all else
-# png(paste0(results.dir, '/remaining_mk_rescaled', '.png'), 
-#     height = ceiling(length(mk.to.plot)/5)*3, width = 20, res = 200, units = 'in')
-# plotSpatialFeatures_(bank, by = mk.to.plot, main = mk.to.plot, 
-#                         main.size = 20,
-#                         col.highpoint=apply(bank@own.expr[mk.to.plot,], 
-#                                             1, quantile, probs = 0.995),
-#                         col.lowpoint=apply(bank@own.expr[mk.to.plot,], 
-#                                            1, quantile, probs = 0),
-#                         col.midpoint=apply(bank@own.expr[mk.to.plot,], 
-#                                            1, quantile, probs = 0.5),
-#                         type = rep('continuous', 
-#                                    length(mk.to.plot)), 
-#                         nrow = ceiling(length(mk.to.plot)/5), ncol = 5, 
-#                         pt.size = 0.1, legend.text.size = 10)
-# dev.off()
-
-# all three sets together, but in order. 
+# all three sets together
 all.three.mk.sets <- c( ca3_to_plot, fimbria_to_plot, mk.to.plot)
 png(paste0(results.dir, '/remaining_mk_rescaled', '.png'), 
     height = ceiling(length(all.three.mk.sets)/6)*3, width = 20, res = 200, units = 'in')
@@ -728,37 +681,3 @@ plotSpatialFeatures_(bank, by = all.three.mk.sets, main = all.three.mk.sets,
 dev.off()
 
 # 
-# # mapply(FUN = function(gene.feat, fname) plotgenes(gene.feat = gene.feat, 
-# #                                                   fname = fname, 
-# #                                                   bank = bank, 
-# #                                                   results.dir = results.dir), 
-# #        gene.feat = genesets,
-# #        fname = paste0(genesets, '_midpt_0.5_wide'), 
-# #        SIMPLIFY = FALSE)
-# # 
-# 
-# mapply(FUN = function(gene.feat, fname) plotgenes(gene.feat = gene.feat, 
-#                                                   fname = fname, 
-#                                                   bank = bank, 
-#                                                   results.dir = results.dir), 
-#        gene.feat = rownames(bank@own.expr),
-#        fname = paste0(rownames(bank@own.expr), '_allgenes_wide'), 
-#        SIMPLIFY = FALSE)
-# # 
-# 
-# # mapply(FUN = function(gene.feat, fname) plotgenespng(gene.feat = gene.feat, 
-# #                                                      fname = fname, 
-# #                                                      bank = bank, 
-# #                                                      results.dir = results.dir), 
-# #        gene.feat = genesets,
-# #        fname = paste0(genesets, '_midpt_0.5_wide'), 
-# #        SIMPLIFY = FALSE)
-# # 
-# 
-# mapply(FUN = function(gene.feat, fname) plotgenespng(gene.feat = gene.feat, 
-#                                                      fname = fname, 
-#                                                      bank = bank, 
-#                                                      results.dir = results.dir), 
-#        gene.feat = rownames(bank@own.expr),
-#        fname = paste0(rownames(bank@own.expr), '_allgenes_wide'), 
-#        SIMPLIFY = FALSE)

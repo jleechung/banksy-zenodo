@@ -2,6 +2,7 @@
 rm(list=ls())
 graphics.off()
 
+# You need the (legacy) version of BANKSY (v 0.1.5) for recreating this analysis: 
 # remotes::install_github("prabhakarlab/Banksy@main") # to install 0.1.5. 
 
 ################## # User inputs # ################## 

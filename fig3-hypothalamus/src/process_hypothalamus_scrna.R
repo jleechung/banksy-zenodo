@@ -1,3 +1,6 @@
+# You need the (legacy) version of BANKSY (v 0.1.5) for recreating this analysis: 
+# remotes::install_github("prabhakarlab/Banksy@main") # to install 0.1.5. 
+
 library(Seurat)
 library(scater)
 library(scran)

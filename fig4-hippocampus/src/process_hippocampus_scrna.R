@@ -1,6 +1,9 @@
 # process_hippocampus_scrna.R
 # # In this file, we perform the verafish result validation using scrna seq data. 
 
+# You need the (legacy) version of BANKSY (v 0.1.5) for recreating this analysis: 
+# remotes::install_github("prabhakarlab/Banksy@main") # to install 0.1.5. 
+
 cutoff = 0.01
 library(Seurat)
 library(Banksy)
@@ -17,20 +20,32 @@ results.dir <- paste0('fig4-hippocampus/out/scrna_neurons')
 check <- dir.exists(results.dir)
 if (!check) dir.create(results.dir)
 
-# download from: https://portal.brain-map.org/atlases-and-data/rnaseq/mouse-whole-cortex-and-hippocampus-smart-seq
-# the following line in the table: 
-# Gene expression matrix (Seurat)	5.4 GB	.ss.rda	This Seurat object contains the cell-by-gene expression matrix, with introns and exons combined.
-# specific link: https://idk-etl-prod-download-bucket.s3.amazonaws.com/aibs_mouse_ctx-hpf_smart-seq/Seurat.ss.rda
-
-# -------------------------------- NOTE -------------------------------- #
+# Starting with the raw data from the literature involves an initial subsetting step which requires 
+# 32 GB RAM. If this is an issue, we recommend using our preprocessed 
+# Seurat objects, see below. 
+# 
+# For the full workflow, download the Seurat object from: 
+# https://portal.brain-map.org/atlases-and-data/rnaseq/mouse-whole-cortex-and-hippocampus-smart-seq
+# and place it in the fig4-hippocampus/data directory. 
+# 
+# The relevant object can be found in the following line in the table: 
+#
+# "Gene expression matrix (Seurat) |	5.4 GB | .ss.rda |	This Seurat object contains the cell-by-gene expression matrix, with introns and exons combined."
+# 
+# The specific link is: https://idk-etl-prod-download-bucket.s3.amazonaws.com/aibs_mouse_ctx-hpf_smart-seq/Seurat.ss.rda
+# 
 # Uncomment the lines below between "START PREPROCESSING BLOCK" and "END PREPROCESSING BLOCK" to generate the 
 # individual seurat objects (ss.seurat.SSC.CA3_unprocessed for neurons, ss.seurat.oligo_unprocessed for 
 # oligodendrocytes.)
-# You will need a computer with 32 GB RAM to run this block, which is why we provide the subsetted seurat objects, 
-# which require much less RAM to work with. 
-# -------------------------------- ---- -------------------------------- #
+# 
+# If you do not wish to subset this seurat object yourself, you can download the subsetted objects from 
+ # the dropbox links below, and place them in fig4-hippocampus/data/ 
+# https://www.dropbox.com/scl/fi/g8jtzh6smb33xxw966lcx/ss_seurat_SSC_CA3_unprocessed.rds?rlkey=mlyap7zcp8j9brx6mcaydp0s5&dl=0
+# and 
+# https://www.dropbox.com/scl/fi/amu2eb07brpgqrmige942/ss_seurat_oligo_unprocessed.rds?rlkey=l6hq40ybktbgjozej0k9puphn&dl=0
 
-# START PREPROCESSING BLOCK (peak usage 17-20 GB RAM , so you need a 32 GB machine, probably)
+# -------------------------------- ---- -------------------------------- #
+# START PREPROCESSING BLOCK (peak usage 17-20 GB RAM , so you need a 32 GB machine)
 # load(file = 'fig4-hippocampus/data/Seurat.ss.rda') # 16.12 GB
 # # # subset out the CA3 and SSc cells. 
 # ss.seurat.SSC.CA3_unprocessed = subset(x = ss.seurat,
@@ -44,7 +59,10 @@ if (!check) dir.create(results.dir)
 # saveRDS(ss.seurat.oligo_unprocessed, file = 'fig4-hippocampus/data/ss_seurat_oligo_unprocessed.rds')
 # ss.seurat <- NULL
 # END PREPROCESSING BLOCK
+# -------------------------------- ---- -------------------------------- #
 
+# Whichever way you generated ss_seurat_SSC_CA3_unprocessed.rds and ss_seurat_oligo_unprocessed.rds, 
+# continue the same way: 
 ss.seurat.SSC.CA3_unprocessed<-readRDS(file = 'fig4-hippocampus/data/ss_seurat_SSC_CA3_unprocessed.rds')
 data.counts <- GetAssayData(ss.seurat.SSC.CA3_unprocessed, slot = 'counts')
 
@@ -89,7 +107,7 @@ mapply(function(x, y) all(names(x)==y),top.genes.list, top.genes.list.filtered)
 top.genes <- unique(unlist(top.genes.list.filtered)) 
 seu.topgenes <- subset(x = ss.seurat.SSC.CA3_unprocessed, features = top.genes)
 cluster.and.plot <- function(seu.topgenes, top.genes, res = 0.2,
-                             normalization=NULL, # 'RC', 'LogNormalize'
+                             normalization=NULL # c('RC', 'LogNormalize')
                              ){
   npcs = 5
   if (!(is.null(normalization))){
@@ -338,88 +356,20 @@ ggplot(od_melted, aes(x=Gene, y=Expression, fill=Cluster)) +
 ggsave(paste0(results.dir, '/vplot_sscca3_CA3high_', 'scaled' ,'.pdf'), 
        height = 6, width = 6)
 
-
-
-
 # --------------------# --------------------# --------------------
-
 # --------------------# --------------------# --------------------
-
+# --------------- Fimbria and Thalamic oligodendrocytes ----------
+# --------------------# --------------------# --------------------
 # --------------------# --------------------# --------------------
 
-# --------------------# --------------------# --------------------
-ss.seurat.OLIGO_unprocessed<-readRDS(file = paste0(data.dir2, '/ss_seurat_oligo_unprocessed.rds'))
-ss.seurat.OLIGO.ln <- NormalizeData(object = ss.seurat.OLIGO_unprocessed, normalization.method = 'LogNormalize')
-ss.seurat.OLIGO.ln.scaled <- ScaleData(object = ss.seurat.OLIGO.ln)
-ss.seurat.OLIGO.unnorm.scaled <- ScaleData(object = ss.seurat.OLIGO_unprocessed)
-
-fimbria_de <- readRDS('/home/ubuntu/banksy/VeraFISH/Oct25_Aug31_Jun8_dt0728_r1_5_0_L0_25_seed42/fimbria_de_Oct25.rds')
-
-
-
-data.unnorm <- GetAssayData(ss.seurat.OLIGO_unprocessed, slot = 'counts')
-data.counts = data.unnorm
-
-seedgenes.OLIGO<-fimbria_de[fimbria_de %in% rownames(data.unnorm)]
-A1 = as.matrix(data.unnorm[seedgenes.OLIGO,])
-B1 = A1>0
-c1 = rowSums(B1)
-c1[1:10]
-
-c1>cutoff*ncol(A1) # bottom 2 percent- 
-
-genes.to.keep = names(which(c1>cutoff*ncol(A1))) # remove bottom 2% of genes
-# > genes.to.keep
-seedgenes.OLIGO<-genes.to.keep
-
-
-
-
-
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-# --------------------# --------------------# --------------------
-#
-#
-#
-#
-#
-#
-
-# --------------- Fimbria and Thalamic oligodendrocytes -------------------
 results.dir <- paste0('fig4-hippocampus/out/scrna_oligos')
 
 check <- dir.exists(results.dir)
 if (!check) dir.create(results.dir)
 
 ss.seurat.OLIGO_unprocessed<-readRDS(file = paste0('fig4-hippocampus/data/ss_seurat_oligo_unprocessed.rds'))
-ss.seurat.OLIGO.ln <- NormalizeData(object = ss.seurat.OLIGO_unprocessed, normalization.method = 'LogNormalize')
+ss.seurat.OLIGO.ln <- NormalizeData(object = ss.seurat.OLIGO_unprocessed, 
+                                    normalization.method = 'LogNormalize')
 ss.seurat.OLIGO.ln.scaled <- ScaleData(object = ss.seurat.OLIGO.ln)
 fimbria_de <- readRDS('fig4-hippocampus/data/fimbria_de.rds')
 data.counts <- GetAssayData(ss.seurat.OLIGO_unprocessed, slot = 'counts')
@@ -534,12 +484,6 @@ FeaturePlot(seu.topgenes.OLIGO, features = (unlist(lapply(top.five.genes.OLIGO.o
                                                           function(genes) genes[1:4]))), ncol = 4)
 dev.off()
 
-
-# violin plots and wilcoxon test: change to oligos (code copied over from ca3/ssc)
-
-# add violin plots and compute p values using wilcoxon rank sum test. 
-# ident 0 is fimbra, and idents 1 are the thalamic oligos neurons
-
 fimbria.color = '#008957'
 thalamic.color = '#8E56A2'
 
@@ -576,9 +520,9 @@ for (i in 1:length(wilcox.fimbria)){
 }
 names(wilcox.fimbria)<-top.three.genes.fimbria.unduplicated
 p.values.fimbria = unlist(lapply(wilcox.fimbria, function(x) x$p.value))
-print(p.values.fimbria)
-# Mobp          Mog        Sept4         Plp1          Mbp          Cnp         Gfap       Etnppl      Gm33370 
-# 1.314516e-38 1.288091e-37 1.348884e-37 2.316211e-35 2.854165e-33 2.310263e-29 5.935266e-02 5.787939e-01 3.025504e-01 
+print(p.values.fimbria[p.values.fimbria<0.05])
+# Mobp          Mog        Sept4         Plp1          Mbp          Cnp        
+# 1.314516e-38 1.288091e-37 1.348884e-37 2.316211e-35 2.854165e-33 2.310263e-29
 # setdiff(rownames(bank_OD_mk_scaled@own.expr), OD.mk.de)
 # setdiff(OD.mk.de, rownames(bank_OD_mk_scaled@own.expr))
 sig.fimbria = names(p.values.fimbria[p.values.fimbria<0.05])
@@ -627,11 +571,11 @@ for (i in 1:length(wilcox.thalamic)){
 }
 names(wilcox.thalamic)<-top.three.genes.thalamic.unduplicated
 p.values.thalamic = unlist(lapply(wilcox.thalamic, function(x) x$p.value))
-print(p.values.thalamic)
+print(p.values.thalamic[p.values.thalamic<0.05])
 # Bcas1          Bmp4         Mpzl1         Mapk9         Kdm7a C330011M18Rik       Sparcl1         C1ql1      Serpine2 
 # 2.066564e-04  4.016780e-13  1.463489e-06  1.424220e-02  7.300949e-03  4.486893e-01  1.340790e-34  7.221627e-44  8.846435e-43 
-# Atp1a2        Ptprz1        Atp1b2         Cspg5        Pdgfra          Nefl         Acta1          Dmkn 
-# 4.790698e-36  8.451538e-39  5.253555e-23  1.688320e-34  2.112048e-40  6.901452e-01  7.158629e-01  1.000000e+00 
+# Atp1a2        Ptprz1        Atp1b2         Cspg5        Pdgfra        
+# 4.790698e-36  8.451538e-39  5.253555e-23  1.688320e-34  2.112048e-40  
 
 sig.thalamic = names(p.values.thalamic[p.values.thalamic<0.05])
 # setdiff(rownames(bank_OD_mk_scaled@own.expr), OD.mk.de)
