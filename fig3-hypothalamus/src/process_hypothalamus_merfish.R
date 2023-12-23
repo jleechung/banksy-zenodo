@@ -6,21 +6,21 @@ graphics.off()
 # remotes::install_github("prabhakarlab/Banksy@main") # to install 0.1.5. 
 
 ################## # User inputs # ################## 
+# You can either use our provided banksy object (see download instructions below) 
+# or cluster the data yourself. Even if you wish to cluster the data yourself, we 
+# recommend running the script once with the provided banksy object. 
 # 1. We provide a Banksy object (banksyObj_provided.rds) that has had clustering 
 # already performed on all naive animals. 
-#
 # Downloading this object, and placing it in the correct directory (see below), 
 # along with setting the flag:
 USE_PROVIDED_BANKSY_OBJ = TRUE
 # to TRUE allows for exact reproduction of the results in the paper. 
-# 
 # Download instructions: 
 # The Banksy Object can be downloaded from 
-# the Zenodo archive at <permalink here> 
-# or the Dropbox link at
+ # the Dropbox link at
 # https://www.dropbox.com/scl/fi/eq05c2gip0g61vc0i6n1e/banksyObj_provided.rds?rlkey=z7w2tywtn4h8jiapeymv0l54e&dl=0
 # Save this object in the banksy-zenodo/fig3-hypothalamus/data directory. 
-
+# In the Zenodo version of this repo, the banksy object is provided, and does not need to be downloaded. 
 
 # 2. If performing clustering yourself (i.e., not using the Banksy object we provide), 
 # then you may want to use fewer than the 11 naive animals in your initial run, 
@@ -34,7 +34,7 @@ number_of_animals = 2
 # It is possible that the numbers assigned to the clusters are slightly different than what were obtained 
 # by us. In come of the plotting and DE gene calling analysis below, we have manually specified these cluster numbers, 
 # so to reproduce our results, you will need to determine which cluster corresponds to the mature oligodendrocytes. 
-# This can be done very easily, as follows: 
+# See the note at line 272. 
 # 
 ################## # Analysis Code # ################## 
 
@@ -175,23 +175,23 @@ sampled.cells = bank@meta.data$cell_ID[sample.int(nrow(bank@meta.data),
                                                        min(80000, nrow(bank@meta.data)))]
 bank.sampled = SubsetBanksy(bank, cells = sampled.cells)
 
-# hypo.cols['1'] = '' 
-# hypo.cols['2'] = '#'
+
+
 hypo.cols['3'] = '#848482'
-# hypo.cols['4'] = '#'
+
 hypo.cols['5'] = '#008856'
-# hypo.cols['6'] = '#'
+
 hypo.cols['7'] = '#BE0032'
 hypo.cols['8'] = '#F38400'
-# hypo.cols['9'] = '#'
+
 hypo.cols['10'] = '#F99379'
 hypo.cols['11'] = '#5F6B6D' 
-# hypo.cols['12'] = '#'
+
 hypo.cols['13'] = '#0067A5'
-# hypo.cols['14'] = '#'
+
 hypo.cols['15'] = '#F6A6A0'
-# hypo.cols['16'] = '#'
-# hypo.cols['17'] = '#'
+
+
 
 bank.runs = c('clust_M1_lam0_k50_res0.5', 
   'clust_M1_lam0.2_k50_res0.5') 
@@ -269,16 +269,14 @@ spatial_plots2(bank.animal1, hypo.cols)
 
 
 
-###############################################
-# In this section, you will need to determine the cluster number of the oligodendrocyte clusters, and hardcode them 
-# below. You will do this by looking at the UMAPs generated in the previous section. In
-
-# if (USE_PROVIDED_BANKSY_OBJ){
-#   # here. 
-# } else {
-#   # user needs to specify the cluster numbers. 
-# }
-
+################# Identify DE genes in the oligodendrocyte subpopulations #####################
+# In the BANKSY clustering (clust_M1_lam0.2_k50_res0.5), clusters 7 and 8 correspond to the 
+# white and grey matter oligodendrocytes. In the nonspatial clustering (clust_M1_lam0_k50_res0.5),
+# cluster 7 merges these two clusters. The the numerical cluster IDs could be different if you 
+# are not using the provided banksy object, and are instead clustering the data from scratch. 
+# If this is the case, you will need to determine the numbers yourself, by either looking 
+# at the UMAP, heatmap, or the spatial distributions of the clusters. 
+# 
 # Nonpspatial: 
 # ODM: cluster 7 (red)
 #

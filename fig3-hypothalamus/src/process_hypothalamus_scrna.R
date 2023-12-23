@@ -15,7 +15,7 @@ DE_genes_raw =c("Mlc1","Dgkk","Cbln2","Syt4","Gad1","Plin3","Gnrh1",
                 "Sln","Gjc3","Mbp","Lpar1","Trh","Ucn3","Cck") 
 
 # https://satijalab.org/seurat/reference/readmtx
-if (TRUE) { # set to TRUE to generate seurat object
+if (TRUE) { # set to TRUE to generate seurat object. This step can take a while (large file download)
 expression_matrix <- ReadMtx(mtx = "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE113nnn/GSE113576/suppl/GSE113576_matrix.mtx.gz",
                              cells = "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE113nnn/GSE113576/suppl/GSE113576_barcodes.tsv.gz",
                              features = "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE113nnn/GSE113576/suppl/GSE113576_genes.tsv.gz")
@@ -155,19 +155,12 @@ for (i in 1:length(wilcox.sparse)){
 }
 names(wilcox.sparse)<-top.3.sparse.undup
 p.values.sparse = unlist(lapply(wilcox.sparse, function(x) x$p.value))
-print(p.values.sparse)
+print(p.values.sparse[p.values.sparse<0.05])
 
-# Mlc1        Atp1a2        Slc4a4          Dgkk        Elavl4         Tenm1         Cbln2         Cxxc4          Grm1          Syt4          Meg3 
-# 7.209978e-07  9.511541e-15  2.832355e-08  1.502088e-97 5.085965e-272  0.000000e+00  1.525389e-64 1.934872e-213 1.348877e-185 2.565480e-170 1.933490e-173 
-# Snhg11          Gad1         Plin3         S100b         Sepp1          Gjc3         Pex5l         Ptgds 
-# 2.175790e-183 3.422688e-128  7.336142e-01  2.933241e-07  3.550438e-01  9.817952e-01  1.000000e+00  1.000000e+00 
-
-# Irs4          Meg3        Scn2a1 
-# 1.377335e-60 2.456055e-171  0.000000e+00 
-# Gad1        Snhg11          Syt4 
-# 8.892245e-133 5.160685e-185 4.099078e-166 
-# Mlc1        Atp1a2        Slc4a4 
-# 1.398318e-07  6.474899e-16  6.491720e-09 
+#          Mlc1        Atp1a2        Slc4a4          Dgkk        Elavl4         Tenm1         Cbln2         Cxxc4          Grm1          Syt4 
+# 7.209978e-07  9.511541e-15  2.832355e-08  1.502088e-97 5.085965e-272  0.000000e+00  1.525389e-64 1.934872e-213 1.348877e-185 2.565480e-170 
+# Meg3        Snhg11          Gad1         S100b 
+# 1.933490e-173 2.175790e-183 3.422688e-128  2.933241e-07 
 
 for (i in 1:length(wilcox.dense)){
   wilcox.dense[[i]] = wilcox.test(unname(unlist(gene_data_od.dense[Cluster==0,
@@ -181,22 +174,10 @@ for (i in 1:length(wilcox.dense)){
 }
 names(wilcox.dense)<-top.3.dense.undup
 p.values.dense = unlist(lapply(wilcox.dense, function(x) x$p.value))
-print(p.values.dense)
-# Mbp         Mobp         Plp1        Lpar1       Cldn11          Trh      Gm42418     AY036118          Cck        Stmn3 
-# 1.314820e-17 1.246486e-06 3.361609e-22 3.782918e-03 8.168704e-12 1.000000e+00 9.999994e-01 1.000000e+00 1.000000e+00 1.000000e+00 
-# > print(p.values.dense)
-# Lpar1       Cldn11         Plp1        Man1a 
-# 3.246118e-03 1.947643e-15 2.675366e-29 1.000000e+00 
-# Cd81     Slc9a3r2          Mbp         Mobp 
-# 5.871922e-06 9.999982e-01 1.495436e-23 1.251715e-07 
-# Trh      Gm42418     AY036118        Ndrg1 
-# 9.999993e-01 9.998071e-01 9.999999e-01 7.879784e-05 
-# Trf         Fth1 
-# 3.916140e-15 1.129563e-16 
+print(p.values.dense[p.values.dense<0.05])
+# Mbp         Mobp         Plp1        Lpar1       Cldn11 
+# 1.314820e-17 1.246486e-06 3.361609e-22 3.782918e-03 8.168704e-12 
 
-
-# setdiff(rownames(bank_OD_mk_scaled@own.expr), OD.mk.de)
-# setdiff(OD.mk.de, rownames(bank_OD_mk_scaled@own.expr))
 sig.sparse = names(p.values.sparse[p.values.sparse<0.05])
 gene_data_od <- data.table(t(as.matrix(seu.topgenes@assays$RNA@scale.data[sig.sparse,])), 
                            Cluster = Idents(seu.topgenes))
