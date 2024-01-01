@@ -1,5 +1,4 @@
 source('artificial_data/src/process_artificial.R')
-ngene = 400
 for (ngene in c(400, 600, 800, 1020)){
   library(scDesign2)
   library(mclust)
@@ -85,21 +84,18 @@ for (ngene in c(400, 600, 800, 1020)){
   switch(as.character(ngene), 
          '400'={
            genes.subset.starmap = union(genes.subset.starmap.158, randgenes_248)
-           print(length(genes.subset.starmap))
            results.dir = 'artificial_data/out/ngene_400/'
            check <- dir.exists(results.dir)
            if (!check) dir.create(results.dir)
          },
          '600'={
            genes.subset.starmap = union(genes.subset.starmap.158, randgenes_448)
-           print(length(genes.subset.starmap))
            results.dir = 'artificial_data/out/ngene_600/'
            check <- dir.exists(results.dir)
            if (!check) dir.create(results.dir)
          },
          '800'={
            genes.subset.starmap = union(genes.subset.starmap.158, randgenes_648)
-           print(length(genes.subset.starmap)) 
            results.dir = 'artificial_data/out/ngene_800/'
            check <- dir.exists(results.dir)
            if (!check) dir.create(results.dir)
@@ -107,7 +103,6 @@ for (ngene in c(400, 600, 800, 1020)){
          '1020'={
            # all genes
            genes.subset.starmap = union(genes.subset.starmap.158, remaining.genes)
-           print(length(genes.subset.starmap))
            results.dir = 'artificial_data/out/ngene_1020/'
            check <- dir.exists(results.dir)
            if (!check) dir.create(results.dir)
