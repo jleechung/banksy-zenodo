@@ -25,7 +25,14 @@ ss.seurat <- CreateSeuratObject(counts = expression_matrix)
 # in any case, you can manually download the files from the links above, and use ReadMtx on the local files to generate the 
 # Seurat object. 
 
+out.dir = 'fig3-hypothalamus/out/'
+check <- dir.exists(out.dir)
+if (!check) dir.create(out.dir)
+
 results.dir = 'fig3-hypothalamus/out/scrna/'
+check <- dir.exists(results.dir)
+if (!check) dir.create(results.dir)
+
 meta <- openxlsx::read.xlsx('fig3-hypothalamus/data/aau5324_Moffitt_Table-S1.xlsx', 
                             colNames = TRUE)
 

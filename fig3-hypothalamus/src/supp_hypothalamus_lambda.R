@@ -1,5 +1,4 @@
 # supp_hypothalamus_lambda.R
-
 # Lambda sweep on Moffitt et al. MERFISH mouse hypothalamus data
 # Here, we use the mouse hypothalamus data to show what happens at large lambdas. 
 # Load libraries
@@ -9,6 +8,8 @@ graphics.off()
 
 # set this to FALSE to perform clustering yourself. 
 USE_PROVIDED_BANKSY_OBJ = TRUE
+# If setting this to true, download the required banksy object from 
+# https://www.dropbox.com/scl/fi/72skj0ms4akw1s3szfghh/bank_anim1_lamsweep.rds?rlkey=9rd7cubivtaonaf7nwc1ipnsl&dl=0
 
 # params
 animal_ID = 1 
@@ -25,17 +26,18 @@ library(scales) # show_col
 library(data.table) # fread
 library(plyr) # mapvalues
 
+out.dir = 'fig3-hypothalamus/out/'
+check <- dir.exists(out.dir)
+if (!check) dir.create(out.dir)
+
 results.dir = 'fig3-hypothalamus/out/merfish_supp_lambda'
 check <- dir.exists(results.dir)
 if (!check) dir.create(results.dir)
 data.dir = 'fig3-hypothalamus/data/'
 
-
-
 if (USE_PROVIDED_BANKSY_OBJ){
   bank = readRDS( file = paste0(data.dir, '/bank_anim1_lamsweep.rds'))
 } else {
-  
   all_mfish = fread('fig3-hypothalamus/data/Moffitt_and_Bambah-Mukku_et_al_merfish_all_cells.csv')
   all_mfish <- all_mfish[,-c('Fos')]# remove Fos gene per Moffitt manuscript
   all_mfish = cbind(cell_ids = paste0('cell_', 1:nrow(all_mfish)), all_mfish)
@@ -112,9 +114,9 @@ bank<- reorder_genes(bank)
 
 ##################### 
 # Since we swept over all lambdas (from 0 to 1), we have both cell typing and domain segmentation 
-# clustering runs. Obviously, it does not make sense to do cluster consensus between domain segmentation
+# clustering runs. It does not make sense to do cluster consensus between domain segmentation
 # and cell typing runs. Thus, to get a cluster color harmonized banksy object, we split the 
-# object into cell typing runs, and domain segmentation runs, perform ConnectClusters, and then merge back. 
+# object into cell typing runs, and domain segmentation runs, perform connectClusters, and then merge back. 
 # strategy:
 # map moffitt, lam 0 to 0.45, and 0.8 to lambda = 0.2. 
 # map lam 0.5 to 1 to lambda = 0.8 

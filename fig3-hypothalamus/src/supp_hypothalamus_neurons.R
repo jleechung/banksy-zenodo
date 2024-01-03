@@ -6,15 +6,29 @@ graphics.off()
 ################## # Load Data # ################## 
 # Load the clustering result from the file process_hypothalamus_merfish.R
 # In that script, users had the option for using our clustering solution 
-# (using 'fig3-hypothalamus/data/banksyObj_provided.rds', or of performing the 
+# (using 'fig3-hypothalamus/data/banksyObj_provided.rds' (see README.md in that directory),
+# or of performing the 
 # clustering themselves (which takes ~24 hours on a single core). Here, we will 
 # use our clustering solution for simplicity, but if users generated their own 
-# clustering result, they may use that BANKSY object instead.
+# clustering result, they may use that BANKSY object instead. 
+# If using your own saved banksy object, change line 32 accordingly. 
+
+
+
+out.dir = 'fig3-hypothalamus/out/'
+check <- dir.exists(out.dir)
+if (!check) dir.create(out.dir)
 
 results.dir = 'fig3-hypothalamus/out/merfish_supp_neuron'
 check <- dir.exists(results.dir)
 if (!check) dir.create(results.dir)
 data.dir = 'fig3-hypothalamus/data/'
+
+
+USE_PROVIDED_BANKSY_OBJ = TRUE # if true, download 
+# bank_exc_rd2.rds and bank_inh_rd2.rds using the links in 
+# fig3-hypothalamus/data/README.md
+
 bank <- readRDS(file = paste0(data.dir, 'banksyObj_provided.rds'))
 
 ################## # Load libraries # ################## 
@@ -26,10 +40,12 @@ library(scales) # show_col
 library(data.table) # fread
 library(plyr) # mapvalues
 # 
-# with ambiguous cells removed: (maybe want to rerun without the ambigs in the first place...)
+# 
 ambig.cell.ids = bank@meta.data$cell_ID[which(bank@meta.data$Cell_class != 'Ambiguous')]
 bank = SubsetBanksy(bank, cells = ambig.cell.ids)
 
+npcs = 20; 
+k_expr = 50; 
 
 nonspatial.main.run = 'clust_M1_lam0_k50_res2'
 spatial.main.run = 'clust_M1_lam0.2_k50_res2'
@@ -89,14 +105,13 @@ cn.to.del = clust.names(bank.exc.banksy)[!(clust.names(bank.exc.banksy)%in% c('c
 bank.exc.banksy@meta.data[cn.to.del]<-NULL
 bank.inh.banksy@meta.data[cn.to.del]<-NULL
 
+
 res.neurons.exc = seq(2.1, 2.8, 0.1) 
 res.neurons.inh = seq(2.5, 3, 0.1) 
 
-USE_PROVIDED_BANKSY_OBJ = TRUE
-
 if (USE_PROVIDED_BANKSY_OBJ){
-  bank.exc.banksy <- readRDS(file = paste0(data.dir, '/', 'bank_exc_rd2.rds'))
-  bank.inh.banksy <- readRDS(file = paste0(data.dir, '/', 'bank_inh_rd2.rds'))
+  bank.exc.banksy <- readRDS(file = paste0(data.dir, 'bank_exc_rd2.rds'))
+  bank.inh.banksy <- readRDS(file = paste0(data.dir, 'bank_inh_rd2.rds'))
   
 } else {
   bank.exc.banksy <- ScaleBanksy(bank.exc.banksy)

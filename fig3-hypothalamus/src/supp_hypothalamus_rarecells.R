@@ -11,9 +11,14 @@ graphics.off()
 # use our clustering solution for simplicity, but if users generated their own 
 # clustering result, they may use that BANKSY object instead.
 
+out.dir = 'fig3-hypothalamus/out/'
+check <- dir.exists(out.dir)
+if (!check) dir.create(out.dir)
+
 results.dir = 'fig3-hypothalamus/out/merfish_supp_rarecell'
 check <- dir.exists(results.dir)
 if (!check) dir.create(results.dir)
+
 data.dir = 'fig3-hypothalamus/data/'
 bank.conn <- readRDS(file = paste0(data.dir, 'banksyObj_provided.rds'))
 

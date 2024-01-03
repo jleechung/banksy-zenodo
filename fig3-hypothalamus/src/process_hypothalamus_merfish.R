@@ -1,7 +1,13 @@
 # process_merfish_main.R
 rm(list=ls())
 graphics.off()
+out.dir = 'fig3-hypothalamus/out/'
+check <- dir.exists(out.dir)
+if (!check) dir.create(out.dir)
 
+results.dir = 'fig3-hypothalamus/out/merfish'
+check <- dir.exists(results.dir)
+if (!check) dir.create(results.dir)
 # You need the (legacy) version of BANKSY (v 0.1.5) for recreating this analysis: 
 # remotes::install_github("prabhakarlab/Banksy@main") # to install 0.1.5. 
 
@@ -24,15 +30,15 @@ USE_PROVIDED_BANKSY_OBJ = TRUE
 
 # 2. If performing clustering yourself (i.e., not using the Banksy object we provide), 
 # then you may want to use fewer than the 11 naive animals in your initial run, 
-# as the full 11 animals comprise ~0.5 million cells, and can take ~24h to 
-# run the full UMAP and  clustering steps, and about 11GB of RAM. 
+# as the full 11 animals comprise ~0.5 million cells, and can some time and RAM to 
+# run the full UMAP and  clustering steps. 
 # As a start, we recommend using just 
 # 2 or 4 animals, which lead to qualitatively similar results as the full set of naive animals. 
-number_of_animals = 2
+number_of_animals = 2 # set this to 11 to use all naive animals. 
 
 ################# # If running the clustering yourself # ################
 # It is possible that the numbers assigned to the clusters are slightly different than what were obtained 
-# by us. In come of the plotting and DE gene calling analysis below, we have manually specified these cluster numbers, 
+# by us. In some of the plotting and DE gene calling analysis below, we have manually specified these cluster numbers, 
 # so to reproduce our results, you will need to determine which cluster corresponds to the mature oligodendrocytes. 
 # See the note at line 272. 
 # 
@@ -67,7 +73,7 @@ if (USE_PROVIDED_BANKSY_OBJ){
   
 } else {
   # # Load data
-  all_mfish = fread('fig3-hypothalamus/data/Moffitt_and_Bambah-Mukku_et_al_merfish_all_cells.csv')
+  all_mfish = fread('fig3-hypothalamus/data/Moffitt_and_Bambah-Mukku_et_al_merfish_all_cells.csv') # see the readme file in the data dir
   all_mfish <- all_mfish[,-c('Fos')]# remove Fos gene per Moffitt manuscript
   all_mfish = cbind(cell_ids = paste0('cell_', 1:nrow(all_mfish)), all_mfish)
   m.list = lapply(list_of_animal_IDs, function(x) all_mfish[all_mfish$Animal_ID==x,])

@@ -7,9 +7,14 @@ graphics.off()
 # Load the clustering result from the file process_hypothalamus_merfish.R
 # In that script, users had the option for using our clustering solution 
 # (using 'fig3-hypothalamus/data/banksyObj_provided.rds', or of performing the 
-# clustering themselves (which takes ~24 hours on a single core). Here, we will 
+# clustering themselves). Here, we will 
 # use our clustering solution for simplicity, but if users generated their own 
-# clustering result, they may use that BANKSY object instead.
+# clustering result, they may use that BANKSY object instead, by changing line 23 
+# to load the the correct saved object. 
+
+out.dir = 'fig3-hypothalamus/out/'
+check <- dir.exists(out.dir)
+if (!check) dir.create(out.dir)
 
 results.dir = 'fig3-hypothalamus/out/merfish_supp_oligo'
 check <- dir.exists(results.dir)
