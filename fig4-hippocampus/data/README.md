@@ -1,5 +1,29 @@
 # Data download instructions. 
 
+TLDR: If using the repo from GitHub, download the following files into 
+fig4-hippocampus/data (we do not host data files on GitHub, obviously).
+If you are using the repo from the Zenodo archive, then everything has already been already downloaded for you. 
+
+-- bank.rds from
+https://www.dropbox.com/scl/fi/7wwb3oge18f4dsd09t269/bank.rds?rlkey=kln41aetg3louna430r7l50ue&dl=0
+
+-- bank_vfish_hip_0728_multi_domain_revision.rds
+https://www.dropbox.com/scl/fi/zkjsznre08oywcf0aihm4/bank_vfish_hip_0728_multi_domain_revision.rds?rlkey=l8nludvrr04k2yu9ly9qytrtg&dl=0
+
+-- ss_seurat_SSC_CA3_unprocessed.rds
+https://www.dropbox.com/scl/fi/g8jtzh6smb33xxw966lcx/ss_seurat_SSC_CA3_unprocessed.rds?rlkey=mlyap7zcp8j9brx6mcaydp0s5&dl=0
+
+-- ss_seurat_oligo_unprocessed.rds
+https://www.dropbox.com/scl/fi/amu2eb07brpgqrmige942/ss_seurat_oligo_unprocessed.rds?rlkey=l6hq40ybktbgjozej0k9puphn&dl=0
+
+-- Seurat.ss.rda
+https://idk-etl-prod-download-bucket.s3.amazonaws.com/aibs_mouse_ctx-hpf_smart-seq/Seurat.ss.rda
+
+
+------------------------------------------------------------------------------------------------------------
+
+More detailed instructions: 
+
 ## VeraFISH data: 
 This data is provided as part of the BANKSY package itself. Simply run the script 
 fig4-hippocampus/src/process_hippocampus_verafish.R. 

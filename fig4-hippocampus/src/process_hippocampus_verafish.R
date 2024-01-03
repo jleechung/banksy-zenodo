@@ -254,7 +254,7 @@ spagcn.num = lapply(spagcn.num, FUN = function(x) x+1)
 
 # Mar 30, 2023, Now update with the new version of spicemix 
 new.spicemix = readRDS(file = paste0(data.dir, 
-                                     '/bank_vfish_hip_0728_multi_domain_revision.rds'))
+                                     '/bank_vfish_hip_0728_multi_domain_revision.rds')) # download: https://www.dropbox.com/scl/fi/zkjsznre08oywcf0aihm4/bank_vfish_hip_0728_multi_domain_revision.rds?rlkey=l8nludvrr04k2yu9ly9qytrtg&dl=0
 spicedf = new.spicemix@meta.data[,-c(1:13)]
 # all(old.giotto.fict.spice@meta.data$cell_ID == new.spicemix@meta.data$cell_ID)
 
