@@ -1,4 +1,6 @@
-Scripts to reproduce BANKSY analyses. 
+### Scripts to reproduce BANKSY analyses. 
+
+Note: This is not the main BANKSY repo. That can be found here: [R version](https://github.com/prabhakarlab/Banksy), [Python version](https://github.com/prabhakarlab/Banksy_py/tree/main)
 
 The scripts in this repo run with BANKSY version 0.1.5. This is a legacy version that uses a 
 custom BANKSY object (i.e., not the SingleCellExperiment class in the latest version).
